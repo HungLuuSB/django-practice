@@ -1,6 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse, HttpResponseNotFound, HttpResponseRedirect
+from django.template.base import render_value_in_context
 from django.urls import reverse
+from django.template.loader import render_to_string
 monthly_challenges = {
     'january': 'Eat healthy for a month',
     'february': 'Work out at least 3 times a day',
@@ -13,27 +15,20 @@ monthly_challenges = {
     'september': 'Running 2 miles each morning',
     'october': 'Eat vegetables for breakfast',
     'november': 'Learn django for at least 4 hours a day',
-    'december': 'Work on a RTS game until completion'
+    'december': None
 }
 
 def index(request):
-    list_items = ""
-    months = list(monthly_challenges.keys())
 
-    for month in months:
-        month_capitalized = month.capitalize()
-        month_url = reverse('month-challenge', args=[month])
-        list_items += f"<li><a href=\"{month_url}\">{month_capitalized}</a></li>"
-
-    response_form = f"""
-    <ul>
-        {list_items}
-    </ul>
-    """
-    return HttpResponse(response_form)
+    return render(request, "challenges/index.html", {
+        'months': list(monthly_challenges.keys())
+    })
 
 def monthly_challenge(request, month:str):
     if month in monthly_challenges:
-        return HttpResponse(monthly_challenges[month])
+        return render(request, "challenges/challenge.html", {
+            'month': month.capitalize(),
+            'challenge_text': monthly_challenges[month]
+        })
     else:
-        return HttpResponse('Invalid month')
+        return HttpResponseNotFound('Invalid month')
